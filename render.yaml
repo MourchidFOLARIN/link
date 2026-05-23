@@ -1,0 +1,98 @@
+services:
+  # ── Web Service principal (Vite/React + Laravel + Nginx) ───────────────────
+  - type: web
+    name: exellencelink-web
+    runtime: docker
+    plan: free
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: RUN_MIGRATIONS
+        value: "true"
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: exellencelink-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: exellencelink-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: exellencelink-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: exellencelink-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: exellencelink-db
+          property: password
+      - fromGroup: exellencelink-shared-env
+
+  # ── Background Worker pour la file d'attente (Queue Worker) ────────────────
+  - type: worker
+    name: exellencelink-worker
+    runtime: docker
+    plan: free
+    # Surcharge la commande de démarrage du Dockerfile pour lancer le queue worker Laravel
+    dockerCommand: php /var/www/html/artisan queue:work --tries=3 --timeout=0
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: RUN_MIGRATIONS
+        value: "false" # Le worker ne doit pas lancer les migrations en parallèle
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: exellencelink-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: exellencelink-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: exellencelink-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: exellencelink-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: exellencelink-db
+          property: password
+      - fromGroup: exellencelink-shared-env
+
+# ── Base de données PostgreSQL gérée ─────────────────────────────────────────
+databases:
+  - name: exellencelink-db
+    plan: free
+
+# ── Variables d'environnement partagées ──────────────────────────────────────
+envVarGroups:
+  - name: exellencelink-shared-env
+    envVars:
+      - key: APP_KEY
+        generateValue: true # Génère automatiquement une clé sécurisée si absente
+      - key: APP_URL
+        sync: false # À définir avec l'URL finale attribuée par Render
+      - key: QUEUE_CONNECTION
+        value: database
+      - key: GEMINI_API_KEY
+        sync: false # Clé API Gemini de l'utilisateur à saisir sur Render
+      - key: GOOGLE_CLIENT_ID
+        sync: false # Saisir la clé OAuth Google
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false # Saisir le secret OAuth Google
+      - key: GOOGLE_REDIRECT_URI
+        sync: false # Saisir l'URI de redirection Google (ex: https://votre-app.onrender.com/api/auth/google/callback)
