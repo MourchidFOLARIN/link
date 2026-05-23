@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\ProcessLinkMetadata;
+use App\Models\Category;
 use App\Models\Link;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -107,7 +108,11 @@ class LinkController extends Controller
         ]);
 
         if (array_key_exists('categories', $validated)) {
-            $link->categories()->sync($validated['categories'] ?? []);
+            // Sécurité : ne synchroniser que les catégories appartenant à l'utilisateur
+            $validCategoryIds = Category::where('user_id', Auth::id())
+                ->whereIn('id', $validated['categories'] ?? [])
+                ->pluck('id');
+            $link->categories()->sync($validCategoryIds);
         }
 
         if ($link->processing_status === 'pending') {
@@ -197,7 +202,11 @@ class LinkController extends Controller
         $link->save();
 
         if (array_key_exists('categories', $validated)) {
-            $link->categories()->sync($validated['categories'] ?? []);
+            // Sécurité : ne synchroniser que les catégories appartenant à l'utilisateur
+            $validCategoryIds = Category::where('user_id', Auth::id())
+                ->whereIn('id', $validated['categories'] ?? [])
+                ->pluck('id');
+            $link->categories()->sync($validCategoryIds);
         }
 
         return response()->json([

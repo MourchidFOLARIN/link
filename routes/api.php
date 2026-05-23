@@ -27,8 +27,7 @@ Route::middleware('throttle:6,1')->controller(PasswordResetController::class)->g
     Route::post('/auth/reset-password',  'reset');
 });
 
-// ── Catégories publiques ───────────────────────────────────────────────────
-Route::get('/categories', [CategoryController::class, 'index']);
+// ── (les catégories sont maintenant privées, dans le groupe auth:sanctum) ──
 
 // ── Routes protégées ──────────────────────────────────────────────────────
 Route::middleware('auth:sanctum')->group(function () {
@@ -61,6 +60,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/links/{id}',     [LinkController::class, 'update']);
     Route::delete('/links/{id}',   [LinkController::class, 'destroy']);
 
-    // Catégories (création)
+    // Catégories (CRUD privé par utilisateur)
+    Route::get('/categories', [CategoryController::class, 'index']);
     Route::post('/categories', [CategoryController::class, 'store']);
+    Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
 });
