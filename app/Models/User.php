@@ -37,6 +37,8 @@ class User extends Authenticatable
         'password',
         'profession',
         'avatar',
+        'is_admin',
+        'google_id',
     ];
 
     /**
@@ -63,6 +65,9 @@ class User extends Authenticatable
      */
     public function getAvatarUrlAttribute()
     {
+        if ($this->avatar && filter_var($this->avatar, FILTER_VALIDATE_URL)) {
+            return $this->avatar;
+        }
         return $this->avatar ? asset('storage/' . $this->avatar) : null;
     }
 
@@ -84,6 +89,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_admin' => 'boolean',
         ];
     }
 }

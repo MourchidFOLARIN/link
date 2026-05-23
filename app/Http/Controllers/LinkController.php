@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\ProcessLinkMetadata;
 use App\Models\Link;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -10,50 +11,65 @@ use Illuminate\Validation\Rule;
 
 class LinkController extends Controller
 {
+    private const ALLOWED_STATUSES = ['active', 'inactive', 'archived'];
+
+    private const SORT_COLUMNS = [
+        'created_at' => 'created_at',
+        'updated_at' => 'updated_at',
+        'title' => 'title',
+        'views_count' => 'views_count',
+        'last_viewed_at' => 'last_viewed_at',
+        'popularity' => 'views_count',
+    ];
+
     /**
      * Liste des liens avec recherche et filtrage.
      */
     public function index(Request $request)
     {
+        $validated = $request->validate([
+            'search' => 'nullable|string|max:255',
+            'category' => 'nullable|string|max:255',
+            'status' => ['nullable', Rule::in(self::ALLOWED_STATUSES)],
+            'sort_by' => ['nullable', Rule::in(array_keys(self::SORT_COLUMNS))],
+            'order' => ['nullable', Rule::in(['asc', 'desc'])],
+            'per_page' => 'nullable|integer|min:1|max:50',
+            'page' => 'nullable|integer|min:1',
+        ]);
+
         $query = Link::with(['user', 'categories'])->where('user_id', Auth::id());
 
-        // Recherche par titre ou description
-        if ($request->has('search')) {
-            $search = $request->search;
+        if (! empty($validated['search'])) {
+            $search = $validated['search'];
             $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%$search%")
-                  ->orWhere('description', 'like', "%$search%")
-                  ->orWhere('url', 'like', "%$search%");
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%")
+                    ->orWhere('url', 'like', "%{$search}%");
             });
         }
 
-        // Filtrage par catégorie
-        if ($request->has('category')) {
-            $query->whereHas('categories', function ($q) use ($request) {
-                $q->where('slug', $request->category)
-                  ->orWhere('categories.id', $request->category);
+        if (! empty($validated['category'])) {
+            $category = $validated['category'];
+            $query->whereHas('categories', function ($q) use ($category) {
+                $q->where('slug', $category);
+
+                if (ctype_digit($category)) {
+                    $q->orWhere('categories.id', (int) $category);
+                }
             });
         }
 
-        // Filtrage par statut (par défaut 'active')
-        $status = $request->get('status', 'active');
-        $query->where('status', $status);
+        $query->where('status', $validated['status'] ?? 'active');
 
-        // Tri (Date, Popularité)
-        $sortBy = $request->get('sort_by', 'created_at');
-        $order = $request->get('order', 'desc');
+        $sortBy = $validated['sort_by'] ?? 'created_at';
+        $order = $validated['order'] ?? 'desc';
+        $query->orderBy(self::SORT_COLUMNS[$sortBy], $order);
 
-        if ($sortBy === 'popularity') {
-            $query->orderBy('views_count', $order);
-        } else {
-            $query->orderBy($sortBy, $order);
-        }
-
-        $links = $query->paginate($request->get('per_page', 15));
+        $links = $query->paginate($validated['per_page'] ?? 15);
 
         return response()->json([
             'status' => 'success',
-            'data' => $links
+            'data' => $links,
         ]);
     }
 
@@ -62,19 +78,18 @@ class LinkController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'url' => 'required|url',
+        $validated = $request->validate([
+            'url' => 'required|url:http,https|max:2048',
             'title' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'preview_image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'status' => ['nullable', Rule::in(['active', 'inactive', 'archived'])],
+            'status' => ['nullable', Rule::in(self::ALLOWED_STATUSES)],
             'categories' => 'nullable|array',
-            'categories.*' => 'exists:categories,id'
+            'categories.*' => 'integer|exists:categories,id',
         ]);
 
-        $sourceDomain = parse_url($request->url, PHP_URL_HOST);
+        $sourceDomain = parse_url($validated['url'], PHP_URL_HOST);
 
-        // Gestion de l'image uploadée manuellement
         $previewImage = null;
         if ($request->hasFile('preview_image_file')) {
             $previewImage = $request->file('preview_image_file')->store('links', 'public');
@@ -82,28 +97,27 @@ class LinkController extends Controller
 
         $link = Link::create([
             'user_id' => Auth::id(),
-            'url' => $request->url,
-            'title' => $request->title ?? 'Analyse en cours...',
-            'description' => $request->description,
+            'url' => $validated['url'],
+            'title' => $validated['title'] ?? 'Analyse en cours...',
+            'description' => $validated['description'] ?? null,
             'preview_image' => $previewImage,
             'source_domain' => $sourceDomain,
-            'status' => $request->status ?? 'active',
-            'processing_status' => $previewImage && $request->title ? 'completed' : 'pending',
+            'status' => $validated['status'] ?? 'active',
+            'processing_status' => $previewImage && ! empty($validated['title']) ? 'completed' : 'pending',
         ]);
 
-        if ($request->has('categories')) {
-            $link->categories()->sync($request->categories);
+        if (array_key_exists('categories', $validated)) {
+            $link->categories()->sync($validated['categories'] ?? []);
         }
 
-        // Si tout n'a pas été rempli manuellement, lancer le job IA
         if ($link->processing_status === 'pending') {
-            \App\Jobs\ProcessLinkMetadata::dispatch($link);
+            ProcessLinkMetadata::dispatch($link);
         }
 
         return response()->json([
             'status' => 'success',
             'message' => 'Lien ajouté avec succès',
-            'data' => $link->load('categories')
+            'data' => $link->load('categories'),
         ], 201);
     }
 
@@ -114,26 +128,24 @@ class LinkController extends Controller
     {
         $link = Link::with(['user', 'categories'])->findOrFail($id);
 
-        // Vérification de la visibilité
         if ($link->user_id !== Auth::id()) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Accès non autorisé'
+                'message' => 'Accès non autorisé',
             ], 403);
         }
 
-        // Incrémentation des vues + mise à jour de la date de dernière consultation
         $link->increment('views_count');
         $link->update(['last_viewed_at' => now()]);
 
         return response()->json([
             'status' => 'success',
-            'data' => $link
+            'data' => $link,
         ]);
     }
 
     /**
-     * Édition d'un lien existant (titre, description, image, catégories...).
+     * Edition d'un lien existant (titre, description, image, catégories...).
      */
     public function update(Request $request, $id)
     {
@@ -142,64 +154,56 @@ class LinkController extends Controller
         if ($link->user_id !== Auth::id()) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Vous n\'êtes pas l\'auteur de ce lien'
+                'message' => "Vous n'êtes pas l'auteur de ce lien",
             ], 403);
         }
 
-        $request->validate([
-            'url' => 'sometimes|url',
+        $validated = $request->validate([
+            'url' => 'sometimes|url:http,https|max:2048',
             'title' => 'sometimes|string|max:255',
             'description' => 'nullable|string',
             'preview_image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'remove_image' => 'nullable|boolean',
-            'status' => ['nullable', Rule::in(['active', 'inactive', 'archived'])],
+            'status' => ['nullable', Rule::in(self::ALLOWED_STATUSES)],
             'categories' => 'nullable|array',
-            'categories.*' => 'exists:categories,id'
+            'categories.*' => 'integer|exists:categories,id',
         ]);
 
-        // Gestion de l'image
         if ($request->hasFile('preview_image_file')) {
-            // Supprimer l'ancienne image
             if ($link->preview_image) {
                 Storage::disk('public')->delete($link->preview_image);
             }
+
             $link->preview_image = $request->file('preview_image_file')->store('links', 'public');
         } elseif ($request->boolean('remove_image')) {
-            // Supprimer l'image sans remplacement
             if ($link->preview_image) {
                 Storage::disk('public')->delete($link->preview_image);
             }
+
             $link->preview_image = null;
         }
 
-        // Mise à jour du domaine si l'URL change
-        if ($request->has('url')) {
-            $link->source_domain = parse_url($request->url, PHP_URL_HOST);
-            $link->url = $request->url;
+        if (array_key_exists('url', $validated)) {
+            $link->source_domain = parse_url($validated['url'], PHP_URL_HOST);
+            $link->url = $validated['url'];
         }
 
-        // Mise à jour des champs texte
-        if ($request->has('title')) {
-            $link->title = $request->title;
-        }
-        if ($request->has('description')) {
-            $link->description = $request->description;
-        }
-        if ($request->has('status')) {
-            $link->status = $request->status;
+        foreach (['title', 'description', 'status'] as $field) {
+            if (array_key_exists($field, $validated)) {
+                $link->{$field} = $validated[$field];
+            }
         }
 
         $link->save();
 
-        // Synchro des catégories
-        if ($request->has('categories')) {
-            $link->categories()->sync($request->categories);
+        if (array_key_exists('categories', $validated)) {
+            $link->categories()->sync($validated['categories'] ?? []);
         }
 
         return response()->json([
             'status' => 'success',
             'message' => 'Lien mis à jour avec succès',
-            'data' => $link->load('categories')
+            'data' => $link->load('categories'),
         ]);
     }
 
@@ -208,21 +212,26 @@ class LinkController extends Controller
      */
     public function history(Request $request)
     {
+        $validated = $request->validate([
+            'per_page' => 'nullable|integer|min:1|max:50',
+            'page' => 'nullable|integer|min:1',
+        ]);
+
         $links = Link::with('categories')
             ->where('user_id', Auth::id())
             ->where('status', 'active')
             ->whereNotNull('last_viewed_at')
             ->orderBy('last_viewed_at', 'desc')
-            ->paginate($request->get('per_page', 20));
+            ->paginate($validated['per_page'] ?? 20);
 
         return response()->json([
             'status' => 'success',
-            'data' => $links
+            'data' => $links,
         ]);
     }
 
     /**
-     * Suppression logique (Soft Delete).
+     * Suppression logique.
      */
     public function destroy($id)
     {
@@ -231,7 +240,7 @@ class LinkController extends Controller
         if ($link->user_id !== Auth::id()) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Vous n\'êtes pas l\'auteur de ce lien'
+                'message' => "Vous n'êtes pas l'auteur de ce lien",
             ], 403);
         }
 
@@ -239,7 +248,7 @@ class LinkController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Lien déplacé dans la corbeille'
+            'message' => 'Lien déplacé dans la corbeille',
         ]);
     }
 
@@ -248,13 +257,18 @@ class LinkController extends Controller
      */
     public function trash(Request $request)
     {
+        $validated = $request->validate([
+            'per_page' => 'nullable|integer|min:1|max:50',
+            'page' => 'nullable|integer|min:1',
+        ]);
+
         $links = Link::where('user_id', Auth::id())
             ->where('status', 'inactive')
-            ->paginate($request->get('per_page', 15));
+            ->paginate($validated['per_page'] ?? 15);
 
         return response()->json([
             'status' => 'success',
-            'data' => $links
+            'data' => $links,
         ]);
     }
 
@@ -269,7 +283,7 @@ class LinkController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Lien restauré avec succès',
-            'data' => $link
+            'data' => $link,
         ]);
     }
 
@@ -279,8 +293,7 @@ class LinkController extends Controller
     public function forceDelete($id)
     {
         $link = Link::where('user_id', Auth::id())->findOrFail($id);
-        
-        // Suppression physique du fichier preview
+
         if ($link->preview_image) {
             Storage::disk('public')->delete($link->preview_image);
         }
@@ -289,7 +302,7 @@ class LinkController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Lien supprimé définitivement'
+            'message' => 'Lien supprimé définitivement',
         ]);
     }
 }

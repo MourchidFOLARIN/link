@@ -5,8 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <meta name="theme-color" content="#0f172a">
     <meta name="description" content="ExellenceLink - Votre plateforme intelligente de gestion de liens.">
+    <meta name="application-name" content="ExellenceLink">
+    <meta name="apple-mobile-web-app-title" content="ExellenceLink">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
 
     <title>ExellenceLink</title>
+    <link rel="manifest" href="/build/manifest.webmanifest">
+    <link rel="icon" href="/logo.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/logo.svg">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

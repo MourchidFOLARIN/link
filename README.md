@@ -1,6 +1,6 @@
-# Link Intelligence - API de Gestion de Liens par IA
+# ExellenceLink - Plateforme Intelligente de Gestion de Liens par IA
 
-**Link Intelligence** est une API moderne et performante conçue pour organiser, stocker et analyser vos liens web. Grâce à l'intégration de l'IA Gemini de Google, chaque lien ajouté est automatiquement enrichi de métadonnées pertinentes.
+**ExellenceLink** est une application web (PWA) moderne et performante conçue pour organiser, stocker et analyser vos liens web. Grâce à l'intégration de l'IA Gemini de Google, chaque lien ajouté est automatiquement enrichi de métadonnées pertinentes.
 
 ## 🚀 Fonctionnalités Clés
 
@@ -58,6 +58,13 @@
    ```bash
    php artisan queue:work
    ```
+
+## 🗺️ Architecture & Backend Recap
+
+Pour mieux comprendre l'architecture complète du projet, la structure de la base de données, les routes et la logique de l'IA, un récapitulatif détaillé du backend a été généré.
+
+👉 **Vous pouvez le consulter ici : [Backend Recap (backend_recap.md)](.gemini/antigravity/brain/0d0a7158-f7a1-4e3d-ade2-8b2b42986cf4/artifacts/backend_recap.md)** (Le chemin peut varier selon votre environnement, l'outil l'a généré en tant qu'artefact).
+*Il contient des diagrammes Mermaid, les détails des modèles, des controllers et des jobs IA.*
 
 ## 📖 API Documentation
 

@@ -9,11 +9,29 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => { checkAuth(); }, []);
 
+    const persistToken = (token) => {
+        if (!token) return;
+
+        localStorage.setItem('auth_token', token);
+        axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+    };
+
+    const clearToken = () => {
+        localStorage.removeItem('auth_token');
+        delete axios.defaults.headers.common.Authorization;
+    };
+
     const checkAuth = async () => {
         try {
+            const token = localStorage.getItem('auth_token');
+            if (token) {
+                axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+            }
+
             const response = await axios.get('/user');
             setUser(response.data);
         } catch {
+            clearToken();
             setUser(null);
         } finally {
             setLoading(false);
@@ -23,6 +41,7 @@ export const AuthProvider = ({ children }) => {
     const login = async (credentials) => {
         await axios.get('/sanctum/csrf-cookie', { baseURL: '' });
         const response = await axios.post('/auth/login', credentials);
+        persistToken(response.data?.access_token);
         await checkAuth();
         return response.data;
     };
@@ -30,6 +49,8 @@ export const AuthProvider = ({ children }) => {
     const register = async (data) => {
         await axios.get('/sanctum/csrf-cookie', { baseURL: '' });
         const response = await axios.post('/auth/register', data);
+        persistToken(response.data?.access_token);
+        await checkAuth();
         return response.data;
     };
 
@@ -37,6 +58,7 @@ export const AuthProvider = ({ children }) => {
         try {
             await axios.post('/auth/logout');
         } catch { /* ignore */ }
+        clearToken();
         setUser(null);
     };
 
@@ -44,11 +66,18 @@ export const AuthProvider = ({ children }) => {
         setUser(prev => ({ ...prev, ...data }));
     };
 
+    const loginWithToken = async (token) => {
+        persistToken(token);
+        await checkAuth();
+    };
+
     return (
-        <AuthContext.Provider value={{ user, loading, login, register, logout, checkAuth, updateUser }}>
+        <AuthContext.Provider value={{ user, loading, login, register, logout, checkAuth, updateUser, loginWithToken }}>
             {children}
         </AuthContext.Provider>
     );
 };
+
+export default AuthContext;
 
 export const useAuth = () => useContext(AuthContext);
