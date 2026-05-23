@@ -50,29 +50,29 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $request->validate([
+        $credentials = $request->validate([
             'email' => 'required|email',
             'password' => 'required',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        if (auth()->attempt($credentials)) {
+            $request->session()->regenerate();
+            $user = auth()->user();
+            $token = $user->createToken('auth_token')->plainTextToken;
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Identifiants invalides',
-            ], 401);
+                'status' => 'success',
+                'message' => 'Connexion réussie',
+                'data' => $user,
+                'access_token' => $token,
+                'token_type' => 'Bearer',
+            ]);
         }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
-
         return response()->json([
-            'status' => 'success',
-            'message' => 'Connexion réussie',
-            'data' => $user,
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-        ]);
+            'status' => 'error',
+            'message' => 'Identifiants invalides',
+        ], 401);
     }
 
     public function logout(Request $request)

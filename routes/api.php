@@ -35,12 +35,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Liens
     Route::get('/links/trash', [LinkController::class, 'trash']);
+    Route::get('/links/history', [LinkController::class, 'history']);
     Route::post('/links/{id}/restore', [LinkController::class, 'restore']);
     Route::delete('/links/{id}/force', [LinkController::class, 'forceDelete']);
     Route::get('/links', [LinkController::class, 'index']);
     Route::get('/links/{id}', [LinkController::class, 'show']);
     Route::post('/links', [LinkController::class, 'store']);
-    Route::patch('/links/{id}', [LinkController::class, 'update']);
+    Route::post('/links/{id}', [LinkController::class, 'update']);
     Route::delete('/links/{id}', [LinkController::class, 'destroy']);
 
     // Catégories (Administration simple)

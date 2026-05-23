@@ -21,7 +21,15 @@ class Link extends Model
         'status',
         'processing_status',
         'views_count',
+        'last_viewed_at',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'last_viewed_at' => 'datetime',
+        ];
+    }
 
     /**
      * L'auteur du lien.

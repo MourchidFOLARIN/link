@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Link;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class LinkController extends Controller
@@ -57,7 +58,7 @@ class LinkController extends Controller
     }
 
     /**
-     * Ajout manuel d'un lien.
+     * Ajout d'un lien (avec upload d'image optionnel).
      */
     public function store(Request $request)
     {
@@ -65,7 +66,7 @@ class LinkController extends Controller
             'url' => 'required|url',
             'title' => 'nullable|string|max:255',
             'description' => 'nullable|string',
-            'preview_image' => 'nullable|string',
+            'preview_image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'status' => ['nullable', Rule::in(['active', 'inactive', 'archived'])],
             'categories' => 'nullable|array',
             'categories.*' => 'exists:categories,id'
@@ -73,24 +74,31 @@ class LinkController extends Controller
 
         $sourceDomain = parse_url($request->url, PHP_URL_HOST);
 
-        $title = $request->title ?? 'Analyse en cours...';
+        // Gestion de l'image uploadée manuellement
+        $previewImage = null;
+        if ($request->hasFile('preview_image_file')) {
+            $previewImage = $request->file('preview_image_file')->store('links', 'public');
+        }
 
         $link = Link::create([
             'user_id' => Auth::id(),
             'url' => $request->url,
-            'title' => $title,
+            'title' => $request->title ?? 'Analyse en cours...',
             'description' => $request->description,
-            'preview_image' => $request->preview_image,
+            'preview_image' => $previewImage,
             'source_domain' => $sourceDomain,
             'status' => $request->status ?? 'active',
-            'processing_status' => 'pending',
+            'processing_status' => $previewImage && $request->title ? 'completed' : 'pending',
         ]);
 
         if ($request->has('categories')) {
             $link->categories()->sync($request->categories);
         }
 
-        \App\Jobs\ProcessLinkMetadata::dispatch($link);
+        // Si tout n'a pas été rempli manuellement, lancer le job IA
+        if ($link->processing_status === 'pending') {
+            \App\Jobs\ProcessLinkMetadata::dispatch($link);
+        }
 
         return response()->json([
             'status' => 'success',
@@ -100,7 +108,7 @@ class LinkController extends Controller
     }
 
     /**
-     * Consultation détaillée d'un lien.
+     * Consultation détaillée d'un lien (avec tracking historique).
      */
     public function show($id)
     {
@@ -114,8 +122,9 @@ class LinkController extends Controller
             ], 403);
         }
 
-        // Incrémentation des métriques d'engagement (vues)
+        // Incrémentation des vues + mise à jour de la date de dernière consultation
         $link->increment('views_count');
+        $link->update(['last_viewed_at' => now()]);
 
         return response()->json([
             'status' => 'success',
@@ -124,7 +133,7 @@ class LinkController extends Controller
     }
 
     /**
-     * Édition d'un lien existant.
+     * Édition d'un lien existant (titre, description, image, catégories...).
      */
     public function update(Request $request, $id)
     {
@@ -141,18 +150,48 @@ class LinkController extends Controller
             'url' => 'sometimes|url',
             'title' => 'sometimes|string|max:255',
             'description' => 'nullable|string',
-            'preview_image' => 'nullable|string',
+            'preview_image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'remove_image' => 'nullable|boolean',
             'status' => ['nullable', Rule::in(['active', 'inactive', 'archived'])],
             'categories' => 'nullable|array',
             'categories.*' => 'exists:categories,id'
         ]);
 
-        if ($request->has('url')) {
-            $request->merge(['source_domain' => parse_url($request->url, PHP_URL_HOST)]);
+        // Gestion de l'image
+        if ($request->hasFile('preview_image_file')) {
+            // Supprimer l'ancienne image
+            if ($link->preview_image) {
+                Storage::disk('public')->delete($link->preview_image);
+            }
+            $link->preview_image = $request->file('preview_image_file')->store('links', 'public');
+        } elseif ($request->boolean('remove_image')) {
+            // Supprimer l'image sans remplacement
+            if ($link->preview_image) {
+                Storage::disk('public')->delete($link->preview_image);
+            }
+            $link->preview_image = null;
         }
 
-        $link->update($request->all());
+        // Mise à jour du domaine si l'URL change
+        if ($request->has('url')) {
+            $link->source_domain = parse_url($request->url, PHP_URL_HOST);
+            $link->url = $request->url;
+        }
 
+        // Mise à jour des champs texte
+        if ($request->has('title')) {
+            $link->title = $request->title;
+        }
+        if ($request->has('description')) {
+            $link->description = $request->description;
+        }
+        if ($request->has('status')) {
+            $link->status = $request->status;
+        }
+
+        $link->save();
+
+        // Synchro des catégories
         if ($request->has('categories')) {
             $link->categories()->sync($request->categories);
         }
@@ -161,6 +200,24 @@ class LinkController extends Controller
             'status' => 'success',
             'message' => 'Lien mis à jour avec succès',
             'data' => $link->load('categories')
+        ]);
+    }
+
+    /**
+     * Historique des liens consultés (triés par dernière consultation).
+     */
+    public function history(Request $request)
+    {
+        $links = Link::with('categories')
+            ->where('user_id', Auth::id())
+            ->where('status', 'active')
+            ->whereNotNull('last_viewed_at')
+            ->orderBy('last_viewed_at', 'desc')
+            ->paginate($request->get('per_page', 20));
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $links
         ]);
     }
 
@@ -223,9 +280,9 @@ class LinkController extends Controller
     {
         $link = Link::where('user_id', Auth::id())->findOrFail($id);
         
-        // Suppression physique des fichiers si nécessaire (optionnel)
+        // Suppression physique du fichier preview
         if ($link->preview_image) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($link->preview_image);
+            Storage::disk('public')->delete($link->preview_image);
         }
 
         $link->forceDelete();
