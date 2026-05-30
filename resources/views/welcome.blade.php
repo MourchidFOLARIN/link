@@ -30,13 +30,13 @@
     <!-- Données structurées Schema.org JSON-LD -->
     <script type="application/ld+json">
     {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
+      "@@context": "https://schema.org",
+      "@@type": "WebSite",
       "name": "ExellenceLink",
       "url": "https://exellenceteam.alwaysdata.net",
       "description": "ExellenceLink est le gestionnaire de liens intelligent officiel développé par Mourchid FOLARIN pour Excellence Team.",
       "author": {
-        "@type": "Person",
+        "@@type": "Person",
         "name": "Mourchid FOLARIN",
         "jobTitle": "Développeur & Fondateur",
         "sameAs": [
@@ -44,7 +44,7 @@
         ]
       },
       "creator": {
-        "@type": "Organization",
+        "@@type": "Organization",
         "name": "Excellence Team",
         "url": "https://exellenceteam.alwaysdata.net"
       }
