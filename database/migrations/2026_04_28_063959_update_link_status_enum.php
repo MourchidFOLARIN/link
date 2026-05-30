@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('links', function (Blueprint $table) {
-            $table->enum('status', ['active', 'inactive', 'archived'])->default('active')->change();
+            $table->string('status', 255)->default('active')->change();
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('links', function (Blueprint $table) {
-            $table->enum('status', ['public', 'private', 'hidden'])->default('public')->change();
+            $table->string('status', 255)->default('public')->change();
         });
     }
 };
