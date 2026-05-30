@@ -65,7 +65,7 @@ return [
     |
     */
 
-    'allow_registration' => env('ALLOW_REGISTRATION', false),
+    'allow_registration' => env('ALLOW_REGISTRATION', true),
 
     /*
     |--------------------------------------------------------------------------
