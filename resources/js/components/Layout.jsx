@@ -1,9 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import {
-    Link2, LayoutDashboard, History, Trash2,
-    LogOut, User
-} from 'lucide-react';
+import { LayoutDashboard, History, Trash2, LogOut, User } from 'lucide-react';
+import AppLogo from '../components/AppLogo';
 import { useAuth } from '../context/AuthContext';
 
 const NAV = [
@@ -30,12 +28,7 @@ const Layout = ({ children }) => {
             {/* ── Sidebar ── */}
             <aside className="sidebar">
                 {/* Logo */}
-                <div className="sidebar-logo">
-                    <div className="sidebar-logo-icon">
-                        <Link2 size={20} color="white" />
-                    </div>
-                    <span className="sidebar-logo-text">ExellenceLink</span>
-                </div>
+                <AppLogo />
 
                 {/* Nav */}
                 <span className="sidebar-section-label">Navigation</span>
@@ -95,10 +88,7 @@ const Layout = ({ children }) => {
             <main className="app-main">
                 <header className="mobile-topbar">
                     <div className="mobile-brand">
-                        <div className="sidebar-logo-icon">
-                            <Link2 size={18} color="white" />
-                        </div>
-                        <span>ExellenceLink</span>
+                        <AppLogo />
                     </div>
                     {user?.avatar_url ? (
                         <button className="mobile-avatar" onClick={() => navigate('/profile')} aria-label="Profil">

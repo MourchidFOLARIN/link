@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Lock, Link2 } from 'lucide-react';
+import AppLogo from '../components/AppLogo';
 import axios from 'axios';
 
 const ResetPassword = () => {
@@ -36,7 +37,7 @@ const ResetPassword = () => {
     return (
         <div className="auth-page animate-fade-in">
             <div className="auth-card animate-fade-in-up">
-                <div className="auth-logo"><Link2 size={26} color="white" /></div>
+                <AppLogo />
                 <div style={{ marginBottom: 28 }}>
                     <h1 style={{ fontSize: 24, fontWeight: 700, color: '#f1f5f9', margin: '0 0 6px' }}>Nouveau mot de passe</h1>
                     <p style={{ color: '#64748b', fontSize: 14, margin: 0 }}>Choisissez un mot de passe sécurisé.</p>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, User, Briefcase, Link2 } from 'lucide-react';
+import AppLogo from '../components/AppLogo';
 import { useAuth } from '../context/AuthContext';
 
 const FieldInput = ({ label, name, type = 'text', icon: Icon, placeholder, value, onChange, required, error }) => (
@@ -51,9 +52,7 @@ const Register = () => {
     return (
         <div className="auth-page animate-fade-in" style={{ alignItems: 'flex-start', paddingTop: 48, paddingBottom: 48 }}>
             <div className="auth-card animate-fade-in-up" style={{ maxWidth: 480 }}>
-                <div className="auth-logo">
-                    <Link2 size={26} color="white" />
-                </div>
+                <AppLogo />
 
                 <div style={{ marginBottom: 28 }}>
                     <h1 style={{ fontSize: 24, fontWeight: 700, color: '#f1f5f9', margin: 0, marginBottom: 6 }}>

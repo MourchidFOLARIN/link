@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link2, Sparkles, ShieldCheck, Smartphone, ArrowRight, Check, AlertTriangle, Eye, Lock, Globe, FileText, Share2, Tag, Compass } from 'lucide-react';
+import AppLogo from '../components/AppLogo';
 
 const steps = [
     {
@@ -231,9 +232,7 @@ const Onboarding = () => {
                 maxWidth: 480, margin: '0 auto', width: '100%'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div className="auth-logo" style={{ width: 38, height: 38, margin: 0, boxShadow: `0 0 15px ${activeStep.color}40`, border: `1px solid ${activeStep.color}30` }}>
-                        <Link2 size={19} color="white" />
-                    </div>
+                    <AppLogo />
                     <span style={{ color: 'white', fontWeight: 800, fontSize: 17, letterSpacing: '0.5px' }}>ExellenceLink</span>
                 </div>
                 

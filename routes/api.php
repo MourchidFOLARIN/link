@@ -40,6 +40,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // Administration (secrète)
     Route::middleware('admin')->prefix('admin')->group(function () {
         Route::get('/stats', [\App\Http\Controllers\AdminController::class, 'getStats']);
+        Route::get('/users', [\App\Http\Controllers\AdminController::class, 'getUsers']);
+        Route::get('/links', [\App\Http\Controllers\AdminController::class, 'getLinks']);
     });
 
     // Profil

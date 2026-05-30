@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, Link2 } from 'lucide-react';
+import { Mail, Lock } from 'lucide-react';
+import AppLogo from '../components/AppLogo';
 import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
@@ -78,9 +79,7 @@ const Login = () => {
 
             <div className="auth-card animate-fade-in-up">
                 {/* Logo */}
-                <div className="auth-logo">
-                    <Link2 size={26} color="white" />
-                </div>
+                <AppLogo />
 
                 {/* Header */}
                 <div style={{ marginBottom: 32 }}>
