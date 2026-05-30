@@ -19,7 +19,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('preview_image')->nullable();
             $table->string('source_domain')->nullable();
-            $table->enum('status', ['public', 'private', 'hidden'])->default('public');
+            $table->string('status')->default('active');
             $table->integer('views_count')->default(0);
             $table->softDeletes();
             $table->timestamps();
