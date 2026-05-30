@@ -56,6 +56,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Allow Public Registration
+    |--------------------------------------------------------------------------
+    |
+    | Définissez cette valeur sur false dans votre .env (ALLOW_REGISTRATION=false)
+    | pour désactiver les inscriptions publiques sur votre application.
+    | Seul l'administrateur pourra créer des comptes via la commande artisan.
+    |
+    */
+
+    'allow_registration' => env('ALLOW_REGISTRATION', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

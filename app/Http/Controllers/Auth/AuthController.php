@@ -16,6 +16,14 @@ class AuthController extends Controller
      */
     public function store(Request $request)
     {
+        // Vérifier si les inscriptions sont autorisées
+        if (! config('app.allow_registration', true)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Les inscriptions sont actuellement désactivées.',
+            ], 403);
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
@@ -137,6 +145,11 @@ class AuthController extends Controller
                     'avatar' => $user->avatar ?? $googleUser->getAvatar(),
                 ]);
             } else {
+                // Vérifier si les inscriptions sont autorisées avant de créer un nouveau compte
+                if (! config('app.allow_registration', true)) {
+                    return redirect('/login?error=registration_disabled');
+                }
+
                 // Créer un nouvel utilisateur avec les données Google
                 $user = User::create([
                     'name' => $googleUser->getName() ?? explode('@', $googleUser->getEmail())[0],

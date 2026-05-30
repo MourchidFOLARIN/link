@@ -34,6 +34,8 @@ const Login = () => {
         } else if (err) {
             if (err === 'google_not_configured') {
                 setError("La connexion Google n'est pas encore configurée par l'administrateur. Veuillez renseigner GOOGLE_CLIENT_ID dans le fichier .env.");
+            } else if (err === 'registration_disabled') {
+                setError("Les inscriptions sont actuellement désactivées sur cette plateforme.");
             } else {
                 setError("Échec de l'authentification Google. Veuillez réessayer.");
             }

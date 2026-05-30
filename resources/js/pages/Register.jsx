@@ -40,8 +40,13 @@ const Register = () => {
             await register(formData);
             navigate('/dashboard');
         } catch (err) {
-            if (err.response?.data?.errors) setErrors(err.response.data.errors);
-            else setErrors({ general: 'Une erreur est survenue.' });
+            if (err.response?.status === 403) {
+                setErrors({ general: err.response.data.message || 'Les inscriptions sont actuellement désactivées.' });
+            } else if (err.response?.data?.errors) {
+                setErrors(err.response.data.errors);
+            } else {
+                setErrors({ general: 'Une erreur est survenue.' });
+            }
         } finally {
             setLoading(false);
         }
