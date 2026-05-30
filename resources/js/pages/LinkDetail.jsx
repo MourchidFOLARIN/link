@@ -90,7 +90,7 @@ const LinkDetail = () => {
         <div style={{ maxWidth: 900, margin: '0 auto', width: '100%' }}>
             
             {/* Header Navigation */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
+            <div className="responsive-header-nav">
                 <button 
                     onClick={() => navigate('/dashboard')} 
                     className="btn-secondary"
@@ -99,7 +99,7 @@ const LinkDetail = () => {
                     <ArrowLeft size={16} /> Retour
                 </button>
 
-                <div style={{ display: 'flex', gap: 12 }}>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     {!editing ? (
                         <>
                             <button className="btn-secondary" onClick={startEdit}><Edit3 size={15} /> Modifier</button>
@@ -119,7 +119,7 @@ const LinkDetail = () => {
             {/* Main Content Card */}
             <div className="glass-card animate-fade-in-up" style={{ overflow: 'hidden', padding: 0 }}>
                 {/* Image Header */}
-                <div style={{ aspectRatio: '21/9', background: 'rgba(255,255,255,0.02)', position: 'relative', overflow: 'hidden', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <div className="responsive-cover">
                     {currentImage ? (
                         <img src={currentImage} alt={link.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
@@ -149,7 +149,7 @@ const LinkDetail = () => {
                 </div>
 
                 {/* Body */}
-                <div style={{ padding: '40px' }}>
+                <div className="responsive-card-body">
                     {!editing ? (
                         <>
                             <h1 style={{ fontSize: 28, fontWeight: 800, color: '#f1f5f9', margin: '0 0 16px', lineHeight: 1.3 }}>

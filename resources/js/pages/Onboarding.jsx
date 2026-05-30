@@ -226,11 +226,7 @@ const Onboarding = () => {
             }} />
 
             {/* Top Bar */}
-            <div style={{
-                position: 'absolute', top: 24, left: 0, right: 0,
-                padding: '0 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                maxWidth: 480, margin: '0 auto', width: '100%'
-            }}>
+            <div className="onboarding-topbar">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <AppLogo />
                     <span style={{ color: 'white', fontWeight: 800, fontSize: 17, letterSpacing: '0.5px' }}>ExellenceLink</span>
@@ -259,9 +255,7 @@ const Onboarding = () => {
             </div>
 
             {/* Main Card */}
-            <div className="auth-card" style={{ 
-                maxWidth: 460, width: '100%', padding: '32px 28px', marginTop: 50,
-                minHeight: 560, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+            <div className="onboarding-card" style={{ 
                 background: 'rgba(13, 21, 39, 0.7)', backdropFilter: 'blur(20px)',
                 border: '1px solid rgba(255,255,255,0.07)', borderRadius: 24,
                 boxShadow: '0 20px 40px rgba(0,0,0,0.5)'

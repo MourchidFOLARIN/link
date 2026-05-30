@@ -838,6 +838,69 @@ select.input-field option { background: #0d1117; }
     border-color: rgba(99,102,241,0.35);
 }
 
+/* ── Custom Responsive Classes ────────────────────────────────────────── */
+.responsive-profile-card {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    padding: 32px;
+}
+
+.responsive-cover {
+    aspect-ratio: 21/9;
+    background: rgba(255, 255, 255, 0.02);
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.responsive-card-body {
+    padding: 40px;
+}
+
+.responsive-header-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+}
+
+.onboarding-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 480px;
+    width: 100%;
+    padding: 0 24px;
+    z-index: 10;
+    margin-bottom: 20px;
+}
+
+.onboarding-card {
+    max-width: 460px;
+    width: 100%;
+    padding: 32px 28px;
+    margin-top: 24px;
+    min-height: 560px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.responsive-list-card {
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.responsive-list-card-stats {
+    text-align: right;
+    flex-shrink: 0;
+    padding-left: 16px;
+    border-left: 1px solid rgba(255,255,255,0.06);
+}
+
 /* ── Responsive ────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
     html, body, #app {
@@ -1009,6 +1072,60 @@ select.input-field option { background: #0d1117; }
     .btn-secondary,
     .btn-danger {
         min-height: 42px;
+    }
+
+    /* Custom Responsive Classes Overrides */
+    .responsive-profile-card {
+        flex-direction: column !important;
+        text-align: center !important;
+        gap: 20px !important;
+        padding: 24px 20px !important;
+    }
+
+    .responsive-profile-card > div:first-child {
+        margin: 0 auto !important;
+    }
+
+    .responsive-cover {
+        aspect-ratio: 16/9 !important;
+    }
+
+    .responsive-card-body {
+        padding: 20px !important;
+    }
+
+    .responsive-header-nav {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+    }
+
+    .onboarding-topbar {
+        margin-bottom: 12px !important;
+        padding: 0 10px !important;
+    }
+
+    .onboarding-card {
+        margin-top: 12px !important;
+        min-height: auto !important;
+        padding: 24px 18px !important;
+    }
+
+    .responsive-list-card {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+    }
+
+    .responsive-list-card-stats {
+        text-align: left !important;
+        padding-left: 0 !important;
+        border-left: none !important;
+        border-top: 1px solid rgba(255,255,255,0.06) !important;
+        padding-top: 10px !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
     }
 }
 

@@ -71,7 +71,7 @@ const Profile = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                 
                 {/* Avatar Section */}
-                <div className="glass-card animate-fade-in-up" style={{ padding: 32, display: 'flex', alignItems: 'center', gap: 32 }}>
+                <div className="glass-card animate-fade-in-up responsive-profile-card">
                     <div style={{ position: 'relative' }}>
                         <div style={{ width: 100, height: 100, borderRadius: 24, overflow: 'hidden', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 30px rgba(99,102,241,0.2)' }}>
                             {user?.avatar_url ? (

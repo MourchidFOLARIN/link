@@ -66,8 +66,8 @@ const HistoryPage = () => {
                         {items.map((link, i) => (
                             <div 
                                 key={link.id} 
-                                className="glass-card glass-card-hover animate-fade-in-up" 
-                                style={{ padding: 16, display: 'flex', alignItems: 'center', gap: 16, cursor: 'pointer', animationDelay: `${i * 0.04}s` }}
+                                className="glass-card glass-card-hover animate-fade-in-up responsive-list-card" 
+                                style={{ cursor: 'pointer', animationDelay: `${i * 0.04}s` }}
                                 onClick={() => navigate(`/links/${link.id}`)}
                             >
                                 {/* Preview thumbnail */}
@@ -93,7 +93,7 @@ const HistoryPage = () => {
                                 </div>
                                 
                                 {/* Meta stats */}
-                                <div style={{ textAlign: 'right', flexShrink: 0, paddingLeft: 16, borderLeft: '1px solid rgba(255,255,255,0.06)' }}>
+                                <div className="responsive-list-card-stats">
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#94a3b8', fontSize: 13, justifyContent: 'flex-end', fontWeight: 500, marginBottom: 4 }}>
                                         <Eye size={14} style={{ color: '#818cf8' }} /> {link.views_count} vue{link.views_count > 1 ? 's' : ''}
                                     </div>
